@@ -49,7 +49,14 @@ const start = async () => {
     const allDb = (await client.db('all').admin().listDatabases()).databases.map(e => {
         return e.name;
     });
-    const allCollection = (await client.db('gfi-db-1').listCollections().toArray()).map(e => {
+
+    // is db exists
+    if (!allDb.includes(getArgument('db').val)) {
+        console.log(`DB ${getArgument('db').val} does not exists`);
+        return client.close();
+    }
+
+    const allCollection = (await client.db(getArgument('db').val).listCollections().toArray()).map(e => {
         return e.name;
     });
 
@@ -62,11 +69,7 @@ const start = async () => {
         return client.close();
     }
 
-    // is db exists
-    if (!allDb.includes(getArgument('db').val)) {
-        console.log(`DB ${getArgument('db').val} does not exists`);
-        return client.close();
-    }
+    
 
     const db = client.db(getArgument('db').val);
     let timeRange = getArgument('day') || getArgument('week') || getArgument('month') || 0;
@@ -80,13 +83,14 @@ const start = async () => {
                 timeRange = 1000 * 60 * 60 * 24 * 7;
                 break;
             case 'month':
-                timeRange = 1000 * 60 * 60 * 24 * 31;
+                timeRange = 1000 * 60 * 60 * 24 * 31 * 2;
                 break;
             default:
                 timeRange = 0;
         }
     }
 
+    let totalDataFound = 0;
     const exportCollection = async (name) => {
         const data = await db.collection(name).find({
             timestamp: {
@@ -101,11 +105,15 @@ const start = async () => {
             res.push(dotNotate(d));
         });
 
-        const fields = Object.keys(dotNotate(data[0]));
+        totalDataFound += data.length;
 
-        const csv = await json2csv.parseAsync(res, fields);
+        if (data.length > 0) {
+            const fields = Object.keys(dotNotate(data[0]));
 
-        return writeFile(`${name}.csv`, csv);
+            const csv = await json2csv.parseAsync(res, fields);
+    
+            return writeFile(`${name}.csv`, csv);
+        }
     };
 
     console.log('Collection data and exporting data to csv...');
@@ -129,7 +137,7 @@ const start = async () => {
         }
     }
 
-    console.log('Done!');
+    console.log(`Done, ${totalDataFound} data found!`);
 
     return client.close();
 };
