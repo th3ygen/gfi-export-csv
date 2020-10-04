@@ -67,9 +67,7 @@ const start = async () => {
     if (!isCollectionsExists) {
         console.log('given collection does not exists');
         return client.close();
-    }
-
-    
+    }    
 
     const db = client.db(getArgument('db').val);
     let timeRange = getArgument('day') || getArgument('week') || getArgument('month') || 0;
@@ -83,7 +81,7 @@ const start = async () => {
                 timeRange = 1000 * 60 * 60 * 24 * 7;
                 break;
             case 'month':
-                timeRange = 1000 * 60 * 60 * 24 * 31 * 2;
+                timeRange = 1000 * 60 * 60 * 24 * 31;
                 break;
             default:
                 timeRange = 0;
