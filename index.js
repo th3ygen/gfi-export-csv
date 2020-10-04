@@ -53,8 +53,10 @@ const start = async () => {
         return e.name;
     });
 
+    const targetCollection = getArgument('collection');
+
     // is collection(s) exists
-    const isCollectionsExists = ['chains', 'formers'].every((val) => allCollection.includes(val))
+    const isCollectionsExists = targetCollection.val.split(',').every((val) => allCollection.includes(val))
     if (!isCollectionsExists) {
         console.log('given collection does not exists');
         return client.close();
@@ -67,8 +69,6 @@ const start = async () => {
     }
 
     const db = client.db(getArgument('db').val);
-
-    const targetCollection = getArgument('collection');
     let timeRange = getArgument('day') || getArgument('week') || getArgument('month') || 0;
 
     if (timeRange) {
@@ -80,7 +80,7 @@ const start = async () => {
                 timeRange = 1000 * 60 * 60 * 24 * 7;
                 break;
             case 'month':
-                timeRange = 1000 * 60 * 60 * 24 * 31 * 2;
+                timeRange = 1000 * 60 * 60 * 24 * 31;
                 break;
             default:
                 timeRange = 0;
