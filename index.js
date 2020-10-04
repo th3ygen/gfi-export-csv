@@ -63,14 +63,16 @@ const start = async () => {
     const targetCollection = getArgument('collection');
 
     // is collection(s) exists
-    const isCollectionsExists = targetCollection.val.split(',').every((val) => allCollection.includes(val))
-    if (!isCollectionsExists) {
-        console.log('given collection does not exists');
-        return client.close();
-    }    
+    if (targetCollection) {
+        const isCollectionsExists = targetCollection.val.split(',').every((val) => allCollection.includes(val))
+        if (!isCollectionsExists) {
+            console.log('given collection does not exists');
+            return client.close();
+        } 
+    }
 
     const db = client.db(getArgument('db').val);
-    let timeRange = getArgument('day') || getArgument('week') || getArgument('month') || 0;
+    let timeRange = getArgument('day') || getArgument('week') || getArgument('month') || 'all';
 
     if (timeRange) {
         switch (timeRange) {
@@ -83,8 +85,10 @@ const start = async () => {
             case 'month':
                 timeRange = 1000 * 60 * 60 * 24 * 31;
                 break;
-            default:
-                timeRange = 0;
+            case 'all':
+                timeRange = Date.now();
+                break;
+            default: break;
         }
     }
 
@@ -131,6 +135,7 @@ const start = async () => {
         }
     } else {
         for await (const e of allCollection) {
+            console.log(e);
             await exportCollection(e);
         }
     }
